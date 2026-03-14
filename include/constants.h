@@ -6,6 +6,6 @@
 #define SCREEN_HEIGHT 720
 
 // Game
-#define BALL_BASE_SPEED 500.0f
+#define BASE_SPEED 500.0f
 
 #endif
