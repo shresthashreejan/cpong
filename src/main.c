@@ -20,6 +20,7 @@ int main (void)
 	const float BALL_RADIUS = 12.0f;
 	const float PADDLE_WIDTH = 20.0f;
 	const float PADDLE_HEIGHT = 80.0f;
+	const float SCREEN_PADDING = 30.0f;
 
 	Vector2 ballPosition = { (float)SCREEN_WIDTH / 2, (float)SCREEN_HEIGHT / 2 };
 	Vector2 paddleOnePosition = { (float)SCREEN_WIDTH / 16, (float)SCREEN_HEIGHT / 2 - PADDLE_HEIGHT / 2 };
@@ -41,14 +42,15 @@ int main (void)
 		if (IsKeyDown(KEY_DOWN)) paddleTwoDirection.y += 1;
 
 		paddleOnePosition.y += paddleOneDirection.y * paddleSpeed;
-		paddleOnePosition.y = ClampValue(paddleOnePosition.y, 0.0f, (float)SCREEN_HEIGHT - PADDLE_HEIGHT);
+		paddleOnePosition.y = ClampValue(paddleOnePosition.y, SCREEN_PADDING, (float)SCREEN_HEIGHT - SCREEN_PADDING - PADDLE_HEIGHT);
 
 		paddleTwoPosition.y += paddleTwoDirection.y * paddleSpeed;
-		paddleTwoPosition.y = ClampValue(paddleTwoPosition.y, 0.0f, (float)SCREEN_HEIGHT - PADDLE_HEIGHT);
+		paddleTwoPosition.y = ClampValue(paddleTwoPosition.y, SCREEN_PADDING, (float)SCREEN_HEIGHT - SCREEN_PADDING - PADDLE_HEIGHT);
 
 		BeginDrawing();
 		ClearBackground(BLACK);
 		DrawCircleV(ballPosition, BALL_RADIUS, BLUE);
+		DrawRectangleLines(SCREEN_PADDING, SCREEN_PADDING, SCREEN_WIDTH - SCREEN_PADDING * 2, SCREEN_HEIGHT - SCREEN_PADDING * 2, RAYWHITE);
 		DrawRectangle(paddleOnePosition.x, paddleOnePosition.y, PADDLE_WIDTH, PADDLE_HEIGHT, RAYWHITE);
 		DrawRectangle(paddleTwoPosition.x, paddleTwoPosition.y, PADDLE_WIDTH, PADDLE_HEIGHT, RAYWHITE);
 		DrawFPS(10, 10);
