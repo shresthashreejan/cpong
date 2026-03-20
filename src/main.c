@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <stdlib.h>
 
 #include "raylib.h"
 #include "resource_dir.h"
@@ -11,6 +11,12 @@ typedef enum
 	GAME_OVER
 } GameState;
 
+typedef enum
+{
+	PLAYER_ONE,
+	PLAYER_TWO
+} Player;
+
 GameState gameState = GAME_PLAYING;
 
 // Math
@@ -21,10 +27,12 @@ float ClampValue (float val, float min, float max)
 	return val;
 }
 
-void ResetGame (Vector2 *ballPosition, Vector2 *ballDirection, Vector2 *paddleOnePosition, Vector2 *paddleTwoPosition)
+void ResetGame (Vector2 *ballPosition, Vector2 *ballDirection, Vector2 *paddleOnePosition, Vector2 *paddleTwoPosition, Player serveDirection)
 {
 	*ballPosition = (Vector2){ (float)SCREEN_WIDTH / 2, (float)SCREEN_HEIGHT / 2 };
-	*ballDirection = (Vector2){ -1.0f, -0.9f };
+	float horizontalDirection = (serveDirection == PLAYER_ONE) ? -1.0f : 1.0f;
+	float verticalDirection = (float)GetRandomValue(-50, 50) / 100;
+	*ballDirection = (Vector2){ horizontalDirection, verticalDirection };
 
 	*paddleOnePosition = (Vector2){ (float)SCREEN_WIDTH / 16, (float)SCREEN_HEIGHT / 2 - PADDLE_HEIGHT / 2 };
 	*paddleTwoPosition = (Vector2){ (float)SCREEN_WIDTH - (float)SCREEN_WIDTH / 16 - PADDLE_WIDTH, (float)SCREEN_HEIGHT / 2 - PADDLE_HEIGHT / 2 };
@@ -42,7 +50,7 @@ int main (void)
 	int p2Width = MeasureText(PLAYER_TWO_WON, FONT_SIZE);
 
 	Vector2 ballPosition = { (float)SCREEN_WIDTH / 2, (float)SCREEN_HEIGHT / 2 };
-	Vector2 ballDirection = { -1.0f, -0.9f };
+	Vector2 ballDirection = { -1.0f, (float)GetRandomValue(-50, 50) / 100 };
 
 	Vector2 paddleOnePosition = { (float)SCREEN_WIDTH / 16, (float)SCREEN_HEIGHT / 2 - PADDLE_HEIGHT / 2 };
 	Vector2 paddleTwoPosition = { (float)SCREEN_WIDTH - (float)SCREEN_WIDTH / 16 - PADDLE_WIDTH, (float)SCREEN_HEIGHT / 2 - PADDLE_HEIGHT / 2 };
@@ -92,7 +100,7 @@ int main (void)
 				}
 				else
 				{
-					ResetGame(&ballPosition, &ballDirection, &paddleOnePosition, &paddleTwoPosition);
+					ResetGame(&ballPosition, &ballDirection, &paddleOnePosition, &paddleTwoPosition, PLAYER_ONE);
 				}
 			}
 
@@ -105,19 +113,25 @@ int main (void)
 				}
 				else
 				{
-					ResetGame(&ballPosition, &ballDirection, &paddleOnePosition, &paddleTwoPosition);
+					ResetGame(&ballPosition, &ballDirection, &paddleOnePosition, &paddleTwoPosition, PLAYER_TWO);
 				}
 			}
 
 			if (CheckCollisionCircleRec(ballPosition, BALL_RADIUS, paddleOne))
 			{
+				float hitPos = (ballPosition.y - paddleOnePosition.y) / PADDLE_HEIGHT;
+				float angle = (hitPos - 0.5f) * 2.0f;
 				ballDirection.x *= -1;
+				ballDirection.y = angle;
 				ballPosition.x = paddleOne.x + PADDLE_WIDTH + BALL_RADIUS;
 			}
 
 			if (CheckCollisionCircleRec(ballPosition, BALL_RADIUS, paddleTwo))
 			{
+				float hitPos = (ballPosition.y - paddleTwoPosition.y) / PADDLE_HEIGHT;
+				float angle = (hitPos - 0.5f) * 2.0f;
 				ballDirection.x *= -1;
+				ballDirection.y = angle;
 				ballPosition.x = paddleTwo.x - BALL_RADIUS;
 			}
 
@@ -126,13 +140,14 @@ int main (void)
 
 			paddleTwoPosition.y += paddleTwoDirection.y * paddleSpeed;
 			paddleTwoPosition.y = ClampValue(paddleTwoPosition.y, SCREEN_PADDING, (float)SCREEN_HEIGHT - SCREEN_PADDING - PADDLE_HEIGHT);
+		}
 
-			if (gameState == GAME_OVER && IsKeyPressed(KEY_R))
-			{
-				playerOneScore = 0;
-				playerTwoScore = 0;
-				ResetGame(&ballPosition, &ballDirection, &paddleOnePosition, &paddleTwoPosition);
-			}
+		if (gameState == GAME_OVER && IsKeyPressed(KEY_R))
+		{
+			playerOneScore = 0;
+			playerTwoScore = 0;
+			gameState = GAME_PLAYING;
+			ResetGame(&ballPosition, &ballDirection, &paddleOnePosition, &paddleTwoPosition, PLAYER_ONE);
 		}
 
 		BeginDrawing();
@@ -155,7 +170,7 @@ int main (void)
 				DrawText(PLAYER_TWO_WON, SCREEN_WIDTH * 3 / 4 - p2Width / 2, SCREEN_HEIGHT / 2, FONT_SIZE, RAYWHITE);
 			}
 
-			DrawText("Press R to Restart", SCREEN_PADDING + 10, SCREEN_HEIGHT - SCREEN_PADDING - FONT_SIZE, FONT_SIZE, RAYWHITE);
+			DrawText("Press R to Restart", SCREEN_PADDING + 10, SCREEN_HEIGHT - SCREEN_PADDING - FONT_SIZE, FONT_SIZE, RED);
 		}
 
 		DrawCircleV(ballPosition, BALL_RADIUS, BLUE);
